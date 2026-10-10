@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { ChatErrorCode, ChatMessage as Message } from '../../types/chatbot';
-import { buildFollowUps, prefersReducedMotion } from '../../utils/chatbotUtils';
+import { prefersReducedMotion } from '../../utils/chatbotUtils';
 import { ChatErrorState } from './ChatErrorState';
 import { ChatMessage } from './ChatMessage';
 import { QuickSuggestions } from './QuickSuggestions';
@@ -24,8 +24,7 @@ export function ChatMessageList({ messages, isTyping, error, onRetry, onSelectSu
   // Follow-ups appear after each assistant reply: backend-provided if present, otherwise topic-based.
   let followUps: string[] = [];
   if (!isTyping && !error && last?.role === 'assistant') {
-    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
-    followUps = last.suggestions?.length ? last.suggestions : buildFollowUps(lastUser?.content ?? '', last.blocks);
+    followUps = last.suggestions || [];
   }
 
   const failed = error && last?.status === 'failed' ? last : null;

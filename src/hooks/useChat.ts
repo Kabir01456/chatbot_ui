@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { chatService } from '../services/chatService';
 import { ChatError, type ChatErrorCode, type ChatMessage, type ChatReply } from '../types/chatbot';
-import { createId } from '../utils/chatbotUtils';
+import { createId, buildFollowUps } from '../utils/chatbotUtils';
+import { translateChatReply } from '../services/translationService';
 
 const toAssistantMessage = (r: ChatReply): ChatMessage => ({
   id: r.messageId ?? createId(),
@@ -14,7 +15,7 @@ const toAssistantMessage = (r: ChatReply): ChatMessage => ({
 });
 
 /** All chat state and logic. Components stay purely visual. */
-export function useChat() {
+export function useChat(currentLanguage: string = 'en') {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false); // loading a stored conversation
@@ -24,6 +25,9 @@ export function useChat() {
   const conversationRef = useRef<string | null>(null);
   const typingRef = useRef(false);
   const requestRef = useRef(0); // invalidates in-flight replies after clear/new chat
+  const langRef = useRef(currentLanguage);
+
+  useEffect(() => { langRef.current = currentLanguage; }, [currentLanguage]);
 
   // Unsolicited messages pushed by a socket/streaming transport.
   useEffect(
@@ -41,7 +45,16 @@ export function useChat() {
     setIsTyping(true);
     setError(null);
     try {
-      const reply = await chatService.sendMessage({ message: text, conversationId: conversationRef.current });
+      let reply = await chatService.sendMessage({ message: text, conversationId: conversationRef.current, language: langRef.current });
+      
+      // If the backend didn't provide suggestions, generate the fallback ones here so they can be translated.
+      if (!reply.suggestions || reply.suggestions.length === 0) {
+        reply.suggestions = buildFollowUps(text, langRef.current);
+      }
+
+      if (langRef.current !== 'en') {
+        reply = await translateChatReply(reply, langRef.current as any);
+      }
       if (request !== requestRef.current) return;
       if (!reply?.content?.trim() && !reply?.blocks?.length) throw new ChatError('empty');
       conversationRef.current = reply.conversationId;

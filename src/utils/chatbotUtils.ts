@@ -1,5 +1,6 @@
-import type { RecommendationBlock } from '../types/chatbot';
 import type { UserProfile } from '../types/user';
+import { translations } from '../i18n/translations';
+import type { LanguageCode } from '../i18n/types';
 
 export const createId = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -31,42 +32,19 @@ export const INITIAL_SUGGESTIONS = [
   'What skills are currently in demand?',
 ];
 
-type Topic = 'plan' | 'courses' | 'demand' | 'jobs' | 'skills' | 'career' | 'general';
 
-const FOLLOW_UPS: Record<Topic, string[]> = {
-  career: ['Which skills do I need for this career?', 'Show me a learning plan for this role', 'Recommend courses for this career', 'What jobs are available in this field?'],
-  skills: ['Recommend courses to close these gaps', 'Create a learning plan for me', 'Which of these skills is most in demand?', 'How long will it take to learn these?'],
-  courses: ['Which course should I start with?', 'What skills will these courses add?', 'Show me a learning plan with these courses', 'What careers do these courses lead to?'],
-  jobs: ['What skills do I need for these roles?', 'How can I prepare for this role?', 'What is the career path from here?', 'Recommend courses for this role'],
-  demand: ['Which of these skills match my profile?', 'Recommend courses for these skills', 'What careers use these skills?'],
-  plan: ['Recommend courses for the first step', 'How long will this plan take?', 'What jobs can I apply to after this?'],
-  general: ['Suggest a career path for me', 'Identify my skill gaps', 'Recommend courses for my career'],
-};
 
-const BLOCK_TOPIC: Record<RecommendationBlock['type'], Topic> = {
-  career_recommendation: 'career', course_recommendation: 'courses', skill_gap: 'skills', learning_path: 'plan', job_role: 'jobs',
-};
-
-function detectTopic(userText: string, blocks?: RecommendationBlock[]): Topic {
-  if (blocks?.length) return BLOCK_TOPIC[blocks[0].type];
-  const t = userText.toLowerCase();
-  if (/what is|who are you|what can you do/.test(t)) return 'general';
-  if (/\b(plan|roadmap|learning path)\b/.test(t)) return 'plan';
-  if (/course|certif/.test(t)) return 'courses';
-  if (/demand|trend|market/.test(t)) return 'demand';
-  if (/\bjobs?\b|role|opportunit|hiring|interview/.test(t)) return 'jobs';
-  if (/gap|improve|skill|learn/.test(t)) return 'skills';
-  if (/career|path/.test(t)) return 'career';
-  return 'general';
-}
-
-/**
- * Fallback follow-ups when the backend sends no `suggestions`. Static prompts picked by topic only;
- * the AI-driven version should come from the backend (ChatReply.suggestions).
- */
-export function buildFollowUps(lastUserText: string, blocks?: RecommendationBlock[]): string[] {
+export function buildFollowUps(lastUserText: string, lang?: string): string[] {
   const asked = lastUserText.trim().toLowerCase();
-  return FOLLOW_UPS[detectTopic(lastUserText, blocks)].filter((s) => s.toLowerCase() !== asked).slice(0, 4);
+  const t = translations[(lang as LanguageCode) || 'en'] || translations['en'];
+  const allSuggestions = [
+    t.suggestion1 || 'Based on my skills, where do I stand?',
+    t.suggestion2 || 'Suggest a career path for me',
+    t.suggestion3 || 'Which skills should I improve?',
+    t.suggestion4 || 'Recommend courses for my career',
+    t.suggestion5 || 'What skills are currently in demand?'
+  ];
+  return allSuggestions.filter((s) => s.toLowerCase() !== asked).slice(0, 3);
 }
 
 // Teaser dismissal is a harmless UI flag, kept per browser tab session only.

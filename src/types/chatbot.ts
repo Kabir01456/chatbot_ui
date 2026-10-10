@@ -74,6 +74,8 @@ export interface ChatMessage {
 export interface SendMessageRequest {
   message: string;
   conversationId?: string | null;
+  /** ISO language code for the selected UI language, sent to the backend for multilingual responses. */
+  language?: string;
 }
 export interface ChatReply {
   conversationId: string;

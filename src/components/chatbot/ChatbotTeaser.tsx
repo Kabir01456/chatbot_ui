@@ -1,28 +1,28 @@
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { chatbotConfig } from '../../config/chatbotConfig';
+import { useI18n } from '../../i18n';
 
 interface Props { onAsk: (question: string) => void; onDismiss: () => void }
 
-/** Friendly prompt above the launcher. Each button opens the chat and sends that question. */
 export function ChatbotTeaser({ onAsk, onDismiss }: Props) {
   const [visible, setVisible] = useState(false);
+  const { t } = useI18n();
   useEffect(() => {
-    const t = window.setTimeout(() => setVisible(true), chatbotConfig.teaser.showAfterMs);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setVisible(true), chatbotConfig.teaser.showAfterMs);
+    return () => window.clearTimeout(timer);
   }, []);
   if (!visible) return null;
 
   return (
-    <aside className="cb-teaser" aria-label="Career assistant tip">
-      <button type="button" className="cb-teaser__close" onClick={onDismiss} aria-label="Dismiss" title="Dismiss">
+    <aside className="cb-teaser" aria-label={t.careerAssistantTip}>
+      <button type="button" className="cb-teaser__close" onClick={onDismiss} aria-label={t.dismiss} title={t.dismiss}>
         <X size={14} aria-hidden="true" />
       </button>
-      <p>{chatbotConfig.teaser.message}</p>
+      <p>{t.teaserMessage}</p>
       <div className="cb-teaser__actions">
-        {chatbotConfig.teaser.questions.map((q) => (
-          <button key={q} type="button" className="cb-teaser__btn" onClick={() => onAsk(q)}>{q}</button>
-        ))}
+        <button type="button" className="cb-teaser__btn" onClick={() => onAsk(t.teaserQuestion1)}>{t.teaserQuestion1}</button>
+        <button type="button" className="cb-teaser__btn" onClick={() => onAsk(t.teaserQuestion2)}>{t.teaserQuestion2}</button>
       </div>
     </aside>
   );
