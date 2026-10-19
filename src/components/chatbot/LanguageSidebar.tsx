@@ -18,7 +18,6 @@ export function LanguageSidebar({ open, onClose }: Props) {
   useEffect(() => {
     if (open) {
       inputRef.current?.focus();
-      setSearch('');
     }
   }, [open]);
 
@@ -26,11 +25,15 @@ export function LanguageSidebar({ open, onClose }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        setSearch('');
+        onClose();
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
+
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -42,12 +45,18 @@ export function LanguageSidebar({ open, onClose }: Props) {
     );
   }, [search]);
 
-  const handleSelect = (code: LanguageCode) => {
-    setLanguage(code);
+  const handleClose = () => {
+    setSearch('');
     onClose();
   };
 
+  const handleSelect = (code: LanguageCode) => {
+    setLanguage(code);
+    handleClose();
+  };
+
   if (!open) return null;
+
 
   return (
     <aside
@@ -62,7 +71,8 @@ export function LanguageSidebar({ open, onClose }: Props) {
         <button
           type="button"
           className="cb-icon-btn cb-lang-close"
-          onClick={onClose}
+          onClick={handleClose}
+
           aria-label={t.dismiss}
           title={t.dismiss}
         >

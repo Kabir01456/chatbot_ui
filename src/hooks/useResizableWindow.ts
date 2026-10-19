@@ -2,29 +2,27 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type Poin
 
 export interface Size { w: number; h: number }
 
-const MIN: Size = { w: 340, h: 420 };
-const EXPANDED_WIDTH = 760;
+const MIN: Size = { w: 360, h: 480 };
+const EXPANDED_DESKTOP_WIDTH = 880;
+const EXPANDED_DESKTOP_HEIGHT = 740;
 const KEY_STEP = 24;
 const EDGE_GAP = 40; // 20px offset on each side of the viewport
 
 const clamp = ({ w, h }: Size): Size => ({
-  w: Math.min(Math.max(w, MIN.w), Math.max(MIN.w, window.innerWidth - EDGE_GAP)),
-  h: Math.min(Math.max(h, MIN.h), Math.max(MIN.h, window.innerHeight - EDGE_GAP)),
+  w: Math.min(Math.max(w, MIN.w), Math.max(MIN.w, (typeof window !== 'undefined' ? window.innerWidth : 1200) - EDGE_GAP)),
+  h: Math.min(Math.max(h, MIN.h), Math.max(MIN.h, (typeof window !== 'undefined' ? window.innerHeight : 900) - EDGE_GAP)),
 });
 
-/**
- * Desktop resizing for a window anchored to the bottom-right corner, so the drag handle sits at the
- * top-left: dragging up/left makes it bigger. `size === null` means "use the default size".
- * State lives in the widget so the size survives minimize.
- */
 export function useResizableWindow() {
   const [size, setSize] = useState<Size | null>(null);
   const [expanded, setExpanded] = useState(false);
   const windowRef = useRef<HTMLElement | null>(null);
 
   const current = useCallback((): Size | null => {
-    const rect = windowRef.current?.getBoundingClientRect();
-    return rect ? { w: rect.width, h: rect.height } : null;
+    const el = windowRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    return { w: rect.width, h: rect.height };
   }, []);
 
   const startResize = useCallback((e: PointerEvent<HTMLButtonElement>) => {
@@ -49,7 +47,6 @@ export function useResizableWindow() {
     handle.addEventListener('pointercancel', onEnd);
   }, [current]);
 
-  // Keyboard alternative: arrows on the focused handle (Left/Up grow, Right/Down shrink).
   const onHandleKeyDown = useCallback((e: KeyboardEvent<HTMLButtonElement>) => {
     const deltas: Record<string, [number, number]> = {
       ArrowLeft: [KEY_STEP, 0], ArrowRight: [-KEY_STEP, 0], ArrowUp: [0, KEY_STEP], ArrowDown: [0, -KEY_STEP],
@@ -63,18 +60,41 @@ export function useResizableWindow() {
   }, [current]);
 
   const toggleExpand = useCallback(() => {
-    if (expanded) { setSize(null); setExpanded(false); }
-    else { setSize(clamp({ w: EXPANDED_WIDTH, h: window.innerHeight })); setExpanded(true); }
+    if (expanded) {
+      setSize(null);
+      setExpanded(false);
+    } else {
+      setSize(clamp({ w: EXPANDED_DESKTOP_WIDTH, h: EXPANDED_DESKTOP_HEIGHT }));
+      setExpanded(true);
+    }
   }, [expanded]);
 
-  // Keep the window inside the viewport when the browser window shrinks.
+  const expandToArticle = useCallback(() => {
+    setSize(clamp({ w: EXPANDED_DESKTOP_WIDTH, h: EXPANDED_DESKTOP_HEIGHT }));
+    setExpanded(true);
+  }, []);
+
+  const restoreCompact = useCallback(() => {
+    setSize(null);
+    setExpanded(false);
+  }, []);
+
   useEffect(() => {
     const onResize = () => setSize((s) => (s ? clamp(s) : s));
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  return { size, expanded, windowRef, startResize, onHandleKeyDown, toggleExpand };
+  return {
+    size,
+    expanded,
+    windowRef,
+    startResize,
+    onHandleKeyDown,
+    toggleExpand,
+    expandToArticle,
+    restoreCompact,
+  };
 }
 
 export type ResizableWindow = ReturnType<typeof useResizableWindow>;

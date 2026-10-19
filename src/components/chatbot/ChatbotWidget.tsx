@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './chatbot.css';
 import { chatbotConfig } from '../../config/chatbotConfig';
 import { I18nProvider, useI18n } from '../../i18n';
@@ -7,9 +7,8 @@ import { useChatbot } from '../../hooks/useChatbot';
 import { useResizableWindow } from '../../hooks/useResizableWindow';
 import { useTheme, type Theme } from '../../hooks/useTheme';
 import type { UserProfile } from '../../types/user';
-import { isTeaserDismissed, rememberTeaserDismissed } from '../../utils/chatbotUtils';
+import type { ChatbotView } from '../../types/help';
 import { ChatbotButton } from './ChatbotButton';
-import { ChatbotTeaser } from './ChatbotTeaser';
 import { ChatbotWindow } from './ChatbotWindow';
 
 export interface ChatbotWidgetProps {
@@ -18,42 +17,65 @@ export interface ChatbotWidgetProps {
   onThemeChange?: (theme: Theme) => void;
 }
 
-export function ChatbotWidget({ user, theme: themeProp, onThemeChange }: ChatbotWidgetProps) {
+export function ChatbotWidget({
+  user,
+  theme: themeProp,
+  onThemeChange,
+}: ChatbotWidgetProps) {
   return (
     <I18nProvider>
-      <ChatbotWidgetInner user={user} theme={themeProp} onThemeChange={onThemeChange} />
+      <ChatbotWidgetInner
+        user={user}
+        theme={themeProp}
+        onThemeChange={onThemeChange}
+      />
     </I18nProvider>
   );
 }
 
-function ChatbotWidgetInner({ user, theme: themeProp, onThemeChange }: ChatbotWidgetProps) {
+function ChatbotWidgetInner({
+  user,
+  theme: themeProp,
+  onThemeChange,
+}: ChatbotWidgetProps) {
   const { isOpen, isClosing, open, close, profile } = useChatbot(user);
   const { language } = useI18n();
   const chat = useChat(language);
   const resize = useResizableWindow();
   const { theme, toggleTheme } = useTheme(themeProp, onThemeChange);
+
   const [wasOpened, setWasOpened] = useState(false);
-  const [teaserDismissed, setTeaserDismissed] = useState(isTeaserDismissed);
-  const { sendMessage } = chat;
+  const [initialView, setInitialView] = useState<ChatbotView>('home');
+  const [initialQuestion, setInitialQuestion] = useState<string | undefined>(undefined);
 
-  useEffect(() => { if (isOpen) setWasOpened(true); }, [isOpen]);
-
-  const dismissTeaser = () => { setTeaserDismissed(true); rememberTeaserDismissed(); };
-  const openChat = () => { dismissTeaser(); open(); };
-  const askFromTeaser = (question: string) => { openChat(); sendMessage(question); };
+  // Open chatbot handler
+  const openChatWith = (view: ChatbotView = 'home', question?: string) => {
+    setWasOpened(true);
+    setInitialView(view);
+    setInitialQuestion(question);
+    open();
+  };
 
   return (
     <div className="ncct-cb" data-theme={theme} style={{ zIndex: chatbotConfig.zIndex }}>
-      {(isOpen || isClosing) ? (
+      {isOpen || isClosing ? (
         <ChatbotWindow
-          chat={chat} profile={profile} theme={theme} closing={isClosing} resize={resize}
-          onToggleTheme={toggleTheme} onClose={close}
+          chat={chat}
+          profile={profile}
+          theme={theme}
+          closing={isClosing}
+          resize={resize}
+          initialView={initialView}
+          initialQuestion={initialQuestion}
+          onToggleTheme={toggleTheme}
+          onClose={close}
         />
       ) : (
-        <>
-          {!teaserDismissed && <ChatbotTeaser onAsk={askFromTeaser} onDismiss={dismissTeaser} />}
-          <ChatbotButton onClick={openChat} restoreFocus={wasOpened} />
-        </>
+        /* Chatbot Launcher button opens cleanly without unwanted popups */
+        <ChatbotButton
+          onClick={() => openChatWith('home')}
+          restoreFocus={wasOpened}
+        />
       )}
     </div>
   );

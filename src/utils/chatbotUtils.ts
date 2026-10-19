@@ -47,11 +47,29 @@ export function buildFollowUps(lastUserText: string, lang?: string): string[] {
   return allSuggestions.filter((s) => s.toLowerCase() !== asked).slice(0, 3);
 }
 
-// Teaser dismissal is a harmless UI flag, kept per browser tab session only.
+// Teaser / Welcome / Proactive persistence helpers
 const TEASER_KEY = 'ncct-career-ai-teaser-dismissed';
+const WELCOME_KEY = 'ai-support-welcome-dismissed';
+const PROACTIVE_KEY = 'ai-support-proactive-shown';
+
 export const isTeaserDismissed = () => {
   try { return sessionStorage.getItem(TEASER_KEY) === '1'; } catch { return false; }
 };
 export const rememberTeaserDismissed = () => {
-  try { sessionStorage.setItem(TEASER_KEY, '1'); } catch { /* storage unavailable: ignore */ }
+  try { sessionStorage.setItem(TEASER_KEY, '1'); } catch { /* storage unavailable */ }
 };
+
+export const isWelcomeDismissed = () => {
+  try { return localStorage.getItem(WELCOME_KEY) === '1'; } catch { return false; }
+};
+export const rememberWelcomeDismissed = () => {
+  try { localStorage.setItem(WELCOME_KEY, '1'); } catch { /* storage unavailable */ }
+};
+
+export const isProactiveDismissed = () => {
+  try { return localStorage.getItem(PROACTIVE_KEY) === '1'; } catch { return false; }
+};
+export const rememberProactiveDismissed = () => {
+  try { localStorage.setItem(PROACTIVE_KEY, '1'); } catch { /* storage unavailable */ }
+};
+

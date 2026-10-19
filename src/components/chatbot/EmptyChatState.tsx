@@ -1,4 +1,3 @@
-import { GraduationCap } from 'lucide-react';
 import { useI18n } from '../../i18n';
 import type { UserProfile } from '../../types/user';
 import { getFirstName } from '../../utils/chatbotUtils';
@@ -19,9 +18,6 @@ export function EmptyChatState({ profile, onSelect }: { profile: UserProfile | n
 
   return (
     <div className="cb-empty">
-      <span className="cb-empty__icon" aria-hidden="true"><GraduationCap size={26} /></span>
-      <h3>{t.welcomeTitle}</h3>
-      <p>{t.welcomeSubtitle}</p>
       <div className="cb-msg cb-msg--ai cb-empty__greeting">
         <AssistantAvatar />
         <div className="cb-bubble"><RichText text={greeting} /></div>

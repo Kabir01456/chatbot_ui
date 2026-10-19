@@ -26,8 +26,12 @@ export const restTransport: ChatTransport = {
  */
 export interface SocketLike {
   emit(event: string, payload: unknown, ack?: (reply: ChatReply | { error: string }) => void): void;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   on(event: string, handler: (...args: any[]) => void): void;
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   off(event: string, handler: (...args: any[]) => void): void;
+
+
   disconnect(): void;
   connected?: boolean;
 }

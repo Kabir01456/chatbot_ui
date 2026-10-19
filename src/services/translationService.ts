@@ -1,5 +1,6 @@
 import type { LanguageCode } from '../i18n/types';
 import { getLanguageInfo } from '../i18n/languages';
+import type { ChatReply } from '../types/chatbot';
 
 const env = ((import.meta as unknown as { env?: Record<string, string | undefined> }).env) ?? {};
 
@@ -131,7 +132,7 @@ export async function translateAIResponse(text: string, targetLang: LanguageCode
 /**
  * Translates an entire ChatReply (content, suggestions, and blocks) from English to targetLang.
  */
-export async function translateChatReply(reply: any, targetLang: LanguageCode): Promise<any> {
+export async function translateChatReply(reply: ChatReply, targetLang: LanguageCode): Promise<ChatReply> {
   if (targetLang === 'en') return reply;
   
   const translated = { ...reply };
@@ -151,33 +152,35 @@ export async function translateChatReply(reply: any, targetLang: LanguageCode): 
   }
 
   if (translated.blocks) {
-    translated.blocks = await Promise.all(translated.blocks.map(async (block: any) => {
-      const b = { ...block };
-      if (b.title) b.title = await translateAIResponse(b.title, targetLang);
-      if (b.description) b.description = await translateAIResponse(b.description, targetLang);
-      if (b.requiredSkills) b.requiredSkills = await translateArray(b.requiredSkills);
-      if (b.missingSkills) b.missingSkills = await translateArray(b.missingSkills);
-      if (b.partialSkills) b.partialSkills = await translateArray(b.partialSkills);
-      if (b.skills) b.skills = await translateArray(b.skills);
-      if (b.provider) b.provider = await translateAIResponse(b.provider, targetLang);
-      if (b.level) b.level = await translateAIResponse(b.level, targetLang);
-      if (b.duration) b.duration = await translateAIResponse(b.duration, targetLang);
-      if (b.company) b.company = await translateAIResponse(b.company, targetLang);
-      if (b.location) b.location = await translateAIResponse(b.location, targetLang);
-      if (b.targetRole) b.targetRole = await translateAIResponse(b.targetRole, targetLang);
+    translated.blocks = await Promise.all(translated.blocks.map(async (block) => {
+      const b = { ...(block as unknown as Record<string, unknown>) };
+
+      if (typeof b.title === 'string') b.title = await translateAIResponse(b.title, targetLang);
+      if (typeof b.description === 'string') b.description = await translateAIResponse(b.description, targetLang);
+      if (Array.isArray(b.requiredSkills)) b.requiredSkills = await translateArray(b.requiredSkills as string[]);
+      if (Array.isArray(b.missingSkills)) b.missingSkills = await translateArray(b.missingSkills as string[]);
+      if (Array.isArray(b.partialSkills)) b.partialSkills = await translateArray(b.partialSkills as string[]);
+      if (Array.isArray(b.skills)) b.skills = await translateArray(b.skills as string[]);
+      if (typeof b.provider === 'string') b.provider = await translateAIResponse(b.provider, targetLang);
+      if (typeof b.level === 'string') b.level = await translateAIResponse(b.level, targetLang);
+      if (typeof b.duration === 'string') b.duration = await translateAIResponse(b.duration, targetLang);
+      if (typeof b.company === 'string') b.company = await translateAIResponse(b.company, targetLang);
+      if (typeof b.location === 'string') b.location = await translateAIResponse(b.location, targetLang);
+      if (typeof b.targetRole === 'string') b.targetRole = await translateAIResponse(b.targetRole, targetLang);
       
       // If there are steps (learning path)
-      if (b.steps) {
-        b.steps = await Promise.all(b.steps.map(async (step: any) => ({
+      if (Array.isArray(b.steps)) {
+        b.steps = await Promise.all((b.steps as Array<Record<string, unknown>>).map(async (step) => ({
           ...step,
-          title: await translateAIResponse(step.title, targetLang),
-          duration: await translateAIResponse(step.duration, targetLang),
+          title: typeof step.title === 'string' ? await translateAIResponse(step.title, targetLang) : step.title,
+          duration: typeof step.duration === 'string' ? await translateAIResponse(step.duration, targetLang) : step.duration,
         })));
       }
       
-      return b;
+      return b as unknown as typeof block;
     }));
   }
+
 
   return translated;
 }

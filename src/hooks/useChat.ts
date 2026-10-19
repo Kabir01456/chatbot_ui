@@ -3,6 +3,7 @@ import { chatService } from '../services/chatService';
 import { ChatError, type ChatErrorCode, type ChatMessage, type ChatReply } from '../types/chatbot';
 import { createId, buildFollowUps } from '../utils/chatbotUtils';
 import { translateChatReply } from '../services/translationService';
+import type { LanguageCode } from '../i18n/types';
 
 const toAssistantMessage = (r: ChatReply): ChatMessage => ({
   id: r.messageId ?? createId(),
@@ -53,7 +54,7 @@ export function useChat(currentLanguage: string = 'en') {
       }
 
       if (langRef.current !== 'en') {
-        reply = await translateChatReply(reply, langRef.current as any);
+        reply = await translateChatReply(reply, langRef.current as LanguageCode);
       }
       if (request !== requestRef.current) return;
       if (!reply?.content?.trim() && !reply?.blocks?.length) throw new ChatError('empty');
