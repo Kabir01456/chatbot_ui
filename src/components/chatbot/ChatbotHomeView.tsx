@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, ChevronRight, Sparkles, CheckCircle2, MessageSquare, ArrowRight, HelpCircle, Compass, Target, GraduationCap } from 'lucide-react';
+import { Search, ChevronRight, Sparkles, CheckCircle2, MessageSquare, HelpCircle, Target, Compass, GraduationCap } from 'lucide-react';
 import type { UserProfile } from '../../types/user';
 import type { HelpArticle } from '../../types/help';
 import { getPopularArticles, searchHelpArticles } from '../../services/helpData';
@@ -43,7 +43,7 @@ export function ChatbotHomeView({
 
   return (
     <div className="cb-home">
-      {/* Dark teal / deep navy header hero banner */}
+      {/* Dark teal / deep navy hero banner (Matches 2.mp4) */}
       <div className="cb-home__hero">
         <div className="cb-home__greeting-wrap">
           <span className="cb-home__badge">
@@ -51,102 +51,128 @@ export function ChatbotHomeView({
             AI Career Advisor
           </span>
           <h2 className="cb-home__greeting">
-            {firstName ? `Hello, ${firstName}!` : 'Hello!'}
+            {firstName ? `Hello ${firstName}!` : 'Hello!'}
             <br />
-            <span>How can we guide your career?</span>
+            <span>How can we help?</span>
           </h2>
-        </div>
-
-        {/* System status card */}
-        <div className="cb-home__status-card">
-          <div className="cb-home__status-indicator">
-            <span className="cb-home__status-pulse" />
-            <span className="cb-home__status-dot" />
-          </div>
-          <div className="cb-home__status-info">
-            <span className="cb-home__status-title">Career Guidance System Active</span>
-            <span className="cb-home__status-desc">Real-time skill benchmarking & advice</span>
-          </div>
-          <CheckCircle2 size={16} className="cb-home__status-icon" aria-hidden="true" />
-        </div>
-
-        {/* Search Bar */}
-        <div className="cb-home__search-bar">
-          <Search size={18} className="cb-home__search-icon" aria-hidden="true" />
-          <input
-            type="text"
-            className="cb-home__search-input"
-            placeholder="Search career guides, skills, or courses..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            aria-label="Search career guides"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              className="cb-home__search-clear"
-              onClick={() => setSearchQuery('')}
-              aria-label="Clear search"
-            >
-              ×
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Cards Area (Arranged like 2.mp4 reference) */}
       <div className="cb-home__body">
-        {/* Instant Search Results Dropdown/Card */}
-        {searchQuery.trim() && (
-          <section className="cb-home__section cb-home__search-results">
-            <div className="cb-home__section-head">
-              <h3>Search Results ({searchResults.length})</h3>
-              <button
-                type="button"
-                className="cb-home__link-btn"
-                onClick={() => onBrowseHelp(searchQuery)}
-              >
-                View all guides <ArrowRight size={13} />
-              </button>
+        {/* ===================================================================
+            Card 1: Recent Message / AI Conversation Entry Card
+            (Resolves the squished text issue from user screenshot with spacious,
+             full-width readable text and click-to-open conversation)
+           =================================================================== */}
+        <div
+          className="cb-home__recent-card"
+          onClick={() => onAskQuestion()}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onAskQuestion();
+            }
+          }}
+          aria-label="Recent message from Career AI Advisor"
+        >
+          <div className="cb-home__recent-header">
+            <span className="cb-home__recent-label">Recent message</span>
+            <span className="cb-home__recent-time">Just now</span>
+          </div>
+
+          <div className="cb-home__recent-row">
+            <div className="cb-home__recent-avatar">
+              <Sparkles size={18} aria-hidden="true" />
+              <span className="cb-home__recent-dot" title="Online" />
             </div>
-            {searchResults.length > 0 ? (
-              <ul className="cb-home__article-list">
-                {searchResults.map((article) => (
-                  <li key={article.id}>
-                    <button
-                      type="button"
-                      className="cb-home__article-card"
-                      onClick={() => onSelectArticle(article)}
-                    >
-                      <div className="cb-home__article-details">
-                        <span className="cb-home__article-cat">{article.category}</span>
-                        <h4 className="cb-home__article-title">{article.title}</h4>
-                      </div>
-                      <ChevronRight size={18} className="cb-home__article-chevron" aria-hidden="true" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="cb-home__empty-search">
-                <p>No matching career guides found for "{searchQuery}".</p>
-                <button
-                  type="button"
-                  className="cb-home__ask-btn"
-                  onClick={() => onAskQuestion(searchQuery)}
-                >
-                  Ask our AI Career Advisor
-                </button>
+            <div className="cb-home__recent-content">
+              <div className="cb-home__recent-meta">
+                <h4 className="cb-home__recent-name">Career AI Advisor</h4>
+                <span className="cb-home__recent-tag">AI Agent</span>
               </div>
-            )}
-          </section>
-        )}
+              <p className="cb-home__recent-text">
+                Get personalized career path suggestions, evaluate where you stand, and spot skill gaps.
+              </p>
+            </div>
+            <ChevronRight size={18} className="cb-home__recent-chevron" aria-hidden="true" />
+          </div>
+        </div>
 
         {/* ===================================================================
-            New Question & Capabilities Card (Requirement 4)
-            Explains what the chatbot can do with actual project capabilities
-            and provides clickable suggested question options.
+            Card 2: System Status Card (Matches Card 2 in 2.mp4)
+           =================================================================== */}
+        <div className="cb-home__status-card">
+          <div className="cb-home__status-icon-wrap">
+            <CheckCircle2 size={18} className="cb-home__status-icon" aria-hidden="true" />
+          </div>
+          <div className="cb-home__status-info">
+            <span className="cb-home__status-title">Status: All Systems Operational</span>
+            <span className="cb-home__status-desc">Career guidance & skill benchmarking active</span>
+          </div>
+        </div>
+
+        {/* ===================================================================
+            Card 3: Search for Help & Questions List (Matches Card 3 in 2.mp4)
+           =================================================================== */}
+        <div className="cb-home__search-card">
+          <div className="cb-home__search-header">
+            <input
+              type="text"
+              className="cb-home__search-input"
+              placeholder="Search for help..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              aria-label="Search career guides"
+            />
+            <Search size={18} className="cb-home__search-icon" aria-hidden="true" />
+            {searchQuery && (
+              <button
+                type="button"
+                className="cb-home__search-clear"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          <div className="cb-home__search-divider" />
+
+          {/* Question rows with green chevrons */}
+          <ul className="cb-home__questions-list">
+            {(searchQuery.trim() ? searchResults : popularArticles.slice(0, 3)).map((article) => (
+              <li key={article.id}>
+                <button
+                  type="button"
+                  className="cb-home__question-item"
+                  onClick={() => onSelectArticle(article)}
+                >
+                  <span className="cb-home__question-title">{article.title}</span>
+                  <ChevronRight size={16} className="cb-home__question-chevron" aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {!searchQuery.trim() && (
+            <button
+              type="button"
+              className="cb-home__see-all-btn"
+              onClick={() => onBrowseHelp()}
+            >
+              <span>See all career guides</span>
+              <ChevronRight size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* ===================================================================
+            Card 4: Capabilities Card ("What can I do with this chatbot?")
            =================================================================== */}
         <section className="cb-home__capabilities-card" aria-labelledby="cb-cap-heading">
           <div className="cb-home__capabilities-header">
@@ -204,62 +230,6 @@ export function ChatbotHomeView({
               ))}
             </div>
           </div>
-        </section>
-
-        {/* AI Assistant Entry Point Card (Image 3) */}
-        <div className="cb-home__ai-card">
-          <div className="cb-home__ai-icon-wrap">
-            <Sparkles size={22} aria-hidden="true" />
-          </div>
-          <div className="cb-home__ai-text">
-            <h3>Ask our Career AI Advisor</h3>
-            <p>Get personalized career path suggestions, evaluate where you stand, and spot skill gaps.</p>
-          </div>
-          <button
-            type="button"
-            className="cb-home__ai-action-btn"
-            onClick={() => onAskQuestion()}
-          >
-            <MessageSquare size={16} aria-hidden="true" />
-            <span>Ask about your career</span>
-          </button>
-        </div>
-
-        {/* Popular Career Questions / Articles Section (Auto-expands on click) */}
-        <section className="cb-home__section">
-          <div className="cb-home__section-head">
-            <h3>Popular Career Questions</h3>
-            <button
-              type="button"
-              className="cb-home__link-btn"
-              onClick={() => onBrowseHelp()}
-            >
-              Browse all <ChevronRight size={14} />
-            </button>
-          </div>
-
-          <p className="cb-home__section-sub">
-            Click any question below to explore the comprehensive guidance article.
-          </p>
-
-          <ul className="cb-home__article-list">
-            {popularArticles.map((article) => (
-              <li key={article.id}>
-                <button
-                  type="button"
-                  className="cb-home__article-card"
-                  onClick={() => onSelectArticle(article)}
-                >
-                  <div className="cb-home__article-details">
-                    <span className="cb-home__article-cat">{article.category}</span>
-                    <h4 className="cb-home__article-title">{article.title}</h4>
-                    <p className="cb-home__article-snippet">{article.subtitle}</p>
-                  </div>
-                  <ChevronRight size={18} className="cb-home__article-chevron" aria-hidden="true" />
-                </button>
-              </li>
-            ))}
-          </ul>
         </section>
       </div>
     </div>

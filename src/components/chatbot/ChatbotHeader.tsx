@@ -157,6 +157,13 @@ export function ChatbotHeader({
     <header className="cb-header">
       {renderHeaderContent()}
       <div className="cb-header__actions">
+        {view === 'home' && (
+          <div className="cb-header__avatar-stack" title="Career Advisors Online" aria-label="Career Advisors Online">
+            <span className="cb-stack-avatar cb-stack-avatar--1">AI</span>
+            <span className="cb-stack-avatar cb-stack-avatar--2">NC</span>
+            <span className="cb-stack-avatar cb-stack-avatar--3">CT</span>
+          </div>
+        )}
         {view === 'messages' && (
           <Btn label={t.startNewConversation} onClick={onNewChat}>
             <RotateCcw size={16} />

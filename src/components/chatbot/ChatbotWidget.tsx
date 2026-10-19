@@ -58,7 +58,7 @@ function ChatbotWidgetInner({
 
   return (
     <div className="ncct-cb" data-theme={theme} style={{ zIndex: chatbotConfig.zIndex }}>
-      {isOpen || isClosing ? (
+      {(isOpen || isClosing) && (
         <ChatbotWindow
           chat={chat}
           profile={profile}
@@ -70,13 +70,20 @@ function ChatbotWidgetInner({
           onToggleTheme={toggleTheme}
           onClose={close}
         />
-      ) : (
-        /* Chatbot Launcher button opens cleanly without unwanted popups */
-        <ChatbotButton
-          onClick={() => openChatWith('home')}
-          restoreFocus={wasOpened}
-        />
       )}
+
+      {/* Floating launcher button (matches 2.mp4: headset icon when closed, down chevron when open) */}
+      <ChatbotButton
+        isOpen={isOpen}
+        onClick={() => {
+          if (isOpen) {
+            close();
+          } else {
+            openChatWith('home');
+          }
+        }}
+        restoreFocus={wasOpened}
+      />
     </div>
   );
 }
